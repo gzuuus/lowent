@@ -1,8 +1,11 @@
-import { NDKEvent, NDKNip07Signer, type NDKUser, type NostrEvent } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKNip07Signer, type NDKUser, type NDKUserProfile, type NostrEvent } from "@nostr-dev-kit/ndk";
 import { get as getStore } from "svelte/store";
 import ndkStore, { ndkUser } from "$lib/stores/provider";
 import { getEventHash, type Event, verifyEvent } from "nostr-tools";
 import { appSetings } from "./stores/localStore";
+import { browser } from "$app/environment";
+import { db } from "@nostr-dev-kit/ndk-cache-dexie";
+
 
 
 export async function NDKlogin(): Promise<NDKUser | undefined> {
@@ -65,14 +68,13 @@ export async function NDKlogin(): Promise<NDKUser | undefined> {
 
   export function logout() {
     ndkUser.set(undefined);
-    appSetings.update(() => {
+    appSetings.update((currentState) => {
       return {
         lastUserLogged: undefined,
         isAnon: true,
-        rTopics: ['Music', 'General']
+        rTopics: currentState.rTopics
       };
     });
-    // goto("/");
   }
 
   export function verifyAuthEvent ( event: NDKEvent, p?:string, e?: string, sig?: string): boolean {
@@ -86,3 +88,38 @@ export async function NDKlogin(): Promise<NDKUser | undefined> {
       sig: sig!,
     })
   }
+
+  export async function fetchUserProfile(opts: string | undefined): Promise<NDKUserProfile | undefined> {
+    try {
+      if (browser) {
+        const user = await db.users.where({ pubkey: opts }).first();
+        console.log("cached user")
+        if (!user) {
+          console.log("no user")
+          const ndk = getStore(ndkStore);
+          const ndkUser = ndk.getUser({ pubkey: opts });
+          console.log(ndkUser)
+          await ndkUser.fetchProfile({
+            closeOnEose: true,
+            groupable: true,
+            groupableDelay: 200,
+          });
+          console.log(ndkUser)
+          return ndkUser.profile as NDKUserProfile;
+        } else {
+          return user.profile as NDKUserProfile;
+        }
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  export function unixToDate(unixTimestamp: number) {
+    const options: Intl.DateTimeFormatOptions = {month: "short", day: "numeric", hour: "numeric", minute: "numeric" };
+    return new Date(unixTimestamp * 1000).toLocaleString("en-US", options);
+  }
+  

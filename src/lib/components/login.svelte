@@ -26,15 +26,14 @@
         // }
       }
   
-    $: buttonClass =
-      mode === 'primary-sm' && $page.url.href !== `${$page.url.origin}/`
+    $: buttonClass = mode === 'primary-sm'
         ? 'common-btn-sm-filled'
         : mode === 'primary'
         ? 'common-btn-filled'
-        : mode === 'secondary' && $page.url.href !== `${$page.url.origin}/`
+        : mode === 'secondary'
         ? 'common-btn-sm-ghost'
         : mode === 'drawer'
         ? 'common-btn-filled justify-start w-full hover:text-current'
         : 'hidden';
   </script>
-  <button class="btn btn-sm variant-filled" on:click={login}>Login</button>
+  <button class={buttonClass} on:click={login}>Login</button>

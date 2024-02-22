@@ -17,3 +17,8 @@ export interface UserSettings {
     // currentUserFollows: string[] | undefined;
     // UserIdentifier: string | undefined;
   }
+export interface LoadParams {
+    params: {
+      r: string
+    }
+  }

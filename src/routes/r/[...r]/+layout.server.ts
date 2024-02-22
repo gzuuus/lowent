@@ -1,11 +1,6 @@
+import type { LoadParams } from "$lib/interfaces"
 import { sha256 } from "@noble/hashes/sha256"
 import { bytesToHex } from "@noble/hashes/utils"
-
-interface LoadParams {
-  params: {
-    r: string
-  }
-}
 
 export function load({ params }: LoadParams) {
   const { r } = params
