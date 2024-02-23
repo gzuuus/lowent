@@ -4,6 +4,7 @@
 	import { hexToBytes } from '@noble/hashes/utils';
 	import { getPublicKey } from 'nostr-tools';
 	import { appSetings } from '$lib/stores/localStore.js';
+	import { browser } from '$app/environment';
 	export let data;
 	let roomParams: RoomParams;
 
@@ -13,7 +14,7 @@
 		rP: getPublicKey(hexToBytes(data.rK))
 	};
 </script>
-
+{#if browser}
 {#key roomParams}
 	<ChatComponent
 		rK={roomParams.rK}
@@ -22,3 +23,4 @@
 		isAnon={$appSetings.isAnon}
 	/>
 {/key}
+{/if}
