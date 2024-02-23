@@ -5,5 +5,5 @@ import type { Writable } from 'svelte/store';
 export const appSetings: Writable<UserSettings> = localStorageStore('UserSettings', {
 	lastUserLogged: undefined,
 	isAnon: true,
-	rTopics: ['LowEnt[Help]']
+	rTopics: ['LowEnt[Welcome]','LowEnt[Help]', 'Music']
 });
