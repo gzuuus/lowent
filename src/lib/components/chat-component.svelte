@@ -4,7 +4,6 @@
 	import ndk, { ndkUser } from "$lib/stores/provider";
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import { onDestroy, onMount } from 'svelte';
-	import { type Event, verifyEvent } from "nostr-tools";
 	import { appSetings } from "$lib/stores/localStore";
 	import { goto } from "$app/navigation";
 	import SendIcon from "$lib/icons/send-icon.svelte";
@@ -16,23 +15,9 @@
 	export let rK: string;
 	export let rP: string;
 	export let isAnon:boolean = false;
-	const signer = new NDKPrivateKeySigner(rK);
-	$ndk.signer = signer;
-
-	// interface MessageFeed {
-	// 	id: number;
-	// 	host: boolean;
-	// 	avatar: number;
-	// 	name: string;
-	// 	timestamp: string;
-	// 	message: string;
-	// 	color: string;
-	// }
 
 	let elemChat: HTMLElement;
 
-	// Messages
-	// let messageFeed: MessageFeed[] = [];
 	let ownerMessages = new Set<string>([]);
 	let currentMessage = '';
 
@@ -67,9 +52,9 @@
 			idAuthor: finEvent.id!,
 			sigAuthor: finEvent.sig!
 		}
-		console.log(verifyEvent(finEvent as Event));
 	}
-
+	const signer = new NDKPrivateKeySigner(rK);
+	$ndk.signer = signer;
 	const ndkEventFinal = new NDKEvent($ndk);
 	ndkEventFinal.kind = eventValues.kind;
 	ndkEventFinal.created_at = eventValues.created_at;
@@ -86,33 +71,12 @@
 		console.log(finEvent)
 		ownerMessages.add(finEvent.id!);
 	}
-	console.log(await ndkEventFinal.publish());
+	await ndkEventFinal.publish();
 	currentMessage = '';
 	setTimeout(() => {
 		scrollChatTop('smooth');
 	}, 0);
 }
-
-	// async function addMessage(): Promise<void> {
-	// 	const authSigner = new NDKNip07Signer();
-	// 	const tempNDK = new NDK();
-	// 	tempNDK.signer = authSigner;
-	// 	const ndkEvent = new NDKEvent($ndk);
-	// 	ndkEvent.kind = 1;
-	// 	ndkEvent.content = currentMessage;
-	// 	ndkEvent.tags = []
-	// 	ndkEvent.created_at = Math.floor(Date.now() / 1000);
-	// 	// let eventId = eventHash(ndkEvent);
-	// 	// ownerMessages.add(eventId);
-	// 	let finEvent = await finaliceEvent(ndkEvent);
-		
-	// 	console.log(finEvent)
-	// 	// await ndkEvent.publish();
-	// 	currentMessage = '';
-	// 	setTimeout(() => {
-	// 		scrollChatTop('smooth');
-	// 	}, 0);
-	// }
 
 	function onPromptKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
@@ -132,11 +96,14 @@
 			authors: [rP],
 			limit: 10
 		},
-        { closeOnEose: false },
+        {
+			closeOnEose: false,
+			groupable: true,
+			groupableDelay: 100,
+		},
     );
 
 	function handleDeleteTopic(topic: string): void {
-		// appSetings.update((currentValues) => currentValues.filter((value) => value !== topic));
 		appSetings.update((currentState) => {
 			return {
 				lastUserLogged: currentState.lastUserLogged,
@@ -163,10 +130,10 @@
 	})
 	let searchGoto: string;
 </script>
-<div class="chat w-full h-full grid grid-cols-1 sm:grid-cols-[30%_1fr]">
-<!-- Navigation -->
-<div class="hidden sm:grid grid-rows-[auto_1fr_auto] border-r border-surface-500/30">
-	<!-- Header -->
+<div class="chat w-full h-full grid grid-cols-1 lg:grid-cols-[30%_1fr]">
+	<!-- Navigation -->
+	<div class="hidden lg:grid grid-rows-[auto_1fr_auto] border-r border-surface-500/30">
+		<!-- Header -->
 	<header class="border-b border-surface-500/30 p-4">
 		<input class="input" type="search" placeholder="Go to room..." bind:value={searchGoto} on:keydown={onSearchKeydown} />
 	</header>
@@ -195,9 +162,9 @@
     <!-- Conversation -->
     <section bind:this={elemChat} class="p-4 overflow-y-auto space-y-4">
 		{#each $chatMessages as bubble}
-			{#if bubble.pubkey == rP && bubble.tagValue('p') == undefined && !ownerMessages.has(bubble.id)}
+			{#if bubble.tagValue('p') == undefined && !ownerMessages.has(bubble.id)}
 				<div class="grid grid-cols-[auto_1fr] gap-2">
-					<Avatar initials={r} width="w-12" />
+					<Avatar initials={r} width="w-12" background="bg-surface-500/30" />
 					<div class="card p-4 rounded-tl-none space-y-2 variant-soft-primary">
 						<header class="flex justify-between items-center">
 							<p class="font-bold">{r}</p>
@@ -210,8 +177,7 @@
 				</div>
 			{:else if ownerMessages.has(bubble.id)}
 				<div class="grid grid-cols-[1fr_auto] gap-2">
-					
-					<div class="card p-4 variant-soft rounded-tl-none space-y-2">
+					<div class="card p-4 variant-soft border-r-2 rounded-tl-none space-y-2">
 						<header class="flex justify-between items-center">
 							<p class="font-bold">{r}</p>
 							<small class="opacity-50">
@@ -225,7 +191,7 @@
 			{:else if $ndkUser?.pubkey === bubble.tagValue('p')}
 				{#await fetchUserProfile(bubble.tagValue('p')) then value }
 					<div class="grid grid-cols-[1fr_auto] gap-2">
-						<div class="card p-4 variant-soft rounded-tl-none space-y-2">
+						<div class="card p-4 variant-soft border-r-2 rounded-tl-none space-y-2">
 							<header class="flex justify-between items-center">
 								<p class="font-bold">{value?.name}</p>
 								<small class="opacity-50">
@@ -241,7 +207,7 @@
                 <div class="grid grid-cols-[auto_1fr] gap-2">
 						{#await fetchUserProfile(bubble.tagValue('p')) then value }
 						<Avatar initials={value?.name} src={value?.picture ? value?.picture : value?.image} width="w-12" />
-						<div class="card p-4 rounded-tr-none space-y-2 variant-soft-primary">
+						<div class="card p-4 rounded-tr-none space-y-2 border-l-2 border-opacity-5 variant-soft-primary">
 							<header class="flex justify-between items-center">
 								<p class="font-bold">
 											{value?.name}						
