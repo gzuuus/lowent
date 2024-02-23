@@ -4,10 +4,9 @@ import { bytesToHex } from "@noble/hashes/utils"
 
 export function load({ params }: LoadParams) {
   const { r } = params
-  const room = r ? r : "LowEnt"
-  const roomKey = bytesToHex(sha256(room))
+  const roomKey = bytesToHex(sha256(r))
  	return {
-     r: room,
+     r: r,
      rK: roomKey
  	};
  }

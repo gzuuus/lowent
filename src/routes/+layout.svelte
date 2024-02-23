@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.postcss';
 	import ndk, { ndkUser } from "$lib/stores/provider";
-	import { AppShell, SlideToggle, LightSwitch, Drawer, type DrawerSettings } from '@skeletonlabs/skeleton';
+	import { AppShell, SlideToggle, LightSwitch, Drawer } from '@skeletonlabs/skeleton';
 
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
@@ -13,38 +13,40 @@
 	import HomeIcon from '$lib/icons/home-icon.svelte';
 	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import Login from '$lib/components/login.svelte';
-	import { logout } from '$lib/helpers';
+	import { handleDeleteTopic, logout } from '$lib/helpers';
 	import ShutdownIcon from '$lib/icons/shutdown-icon.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { getDrawerStore } from "@skeletonlabs/skeleton";
+	import CloseIcon from '$lib/icons/close-icon.svelte';
 	initializeStores();
 	const drawerStore = getDrawerStore();
 	
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
-	let currentTile: number
+	let currentTile: string | number = 0
 	let isAnon: boolean = $ndkUser ? false : true
 	ndkUser.subscribe(() => {
 		isAnon = $ndkUser ? false : true
 	})
 	$: {
 		$appSetings.isAnon = isAnon
-		if ($page.route.id?.split("/")[1] == "") {currentTile = 0} 
+		if ($page.route.id?.split("/")[1] == "") {currentTile = 0}
 		else if ($page.route.id?.split("/")[1] == "r") {currentTile = 1}
 	}
 
-	function drawerOpen(): void {
-		const s: DrawerSettings = { 
-			id: 'side-nav',
-			width: 'w-[280px] md:w-[480px]',
-			padding: 'p-2',
-			rounded: 'rounded-xl',
-			position: 'left'
-			};
-		drawerStore.open(s);
-	}
-	$: classesDrawer = $drawerStore.id === 'side-nav' ? 'lg:hidden' : '';
-
+	$: classesDrawer = $drawerStore.id === 'side-nav' ? 'sm:hidden' : '';
 </script>
+<svelte:head>
+  <title>LowEnt</title>
+  <meta
+    name="description"
+    content="Be anon, or not, chat freely about anything"
+  />
+  <meta property="og:title" content="LowEnt" />
+  <meta
+    property="og:description"
+    content="Be anon, or not, chat freely about anything"
+  />
+</svelte:head>
 <Drawer class="{classesDrawer}">
 	<div class="flex flex-col h-full overflow-hidden">
 		{#if $drawerStore.id === 'side-nav'}
@@ -56,30 +58,32 @@
 </Drawer>
 <!-- App Shell -->
 <AppShell>
-	<!-- <svelte:fragment slot="header">
-	<AppBar gridColumns="grid-cols-3" slotDefault="place-self-center" slotTrail="place-content-end">
-		<svelte:fragment slot="lead"><button class="btn btn-sm variant-filled" on:click={drawerOpen}><OpenDrawerIcon size={22} flip={true} /></button></svelte:fragment>
-		<h2 class="h3">{$page.params.r}</h2>
-		<svelte:fragment slot="trail">(actions)</svelte:fragment>
-	</AppBar>
-	</svelte:fragment> -->
+
 	<svelte:fragment slot="sidebarLeft">
 	<AppRail>
 		<AppRailTile bind:group={currentTile} name="tile-1" value={0} regionLead="w-fit m-auto" title="tile-1" on:click={() => goto('/')}>
-			<svelte:fragment slot="lead"><HomeIcon size={22} /></svelte:fragment>
+			<svelte:fragment slot="lead">
+				<HomeIcon size={22} />
+			</svelte:fragment>
 			<span>Home</span>
 		</AppRailTile>
-		<AppRailTile bind:group={currentTile} name="tile-1" value={1} regionLead="w-fit m-auto" title="tile-1" on:click={() => goto('/r')}>
+		<AppRailTile bind:group={currentTile} name="tile-1" value={1} regionLead="w-fit m-auto" title="tile-1" on:click={() => goto(`/r/${$appSetings.rTopics[0] ? $appSetings.rTopics[0] : 'LowEnt[Help]'}`)}>
 			<svelte:fragment slot="lead"><GlobalIcon size={22} /></svelte:fragment>
 			<span>Global</span>
 
 		</AppRailTile>
-		<div class="lg:hidden">
+		<div class="sm:hidden">
 		{#each $appSetings.rTopics as topic }
-		<AppRailTile bind:group={currentTile} name="tile-1" value={15} regionLead="w-fit m-auto" title="tile-1" on:click={() => goto('/r/' + topic + '/')}>
-			<section class=" flex flex-col items-center gap-2 pt-2">
+		<AppRailTile bind:group={currentTile} name="tile-1" value={10} regionLead="w-fit m-auto" title="tile-1" on:click={() => goto('/r/' + topic + '/')}>
+			<section class=" flex flex-col items-center gap-2 py-2 {$page.data.r === topic ? 'border-b border-primary-400' : ''}">
 			<button class=" flex flex-col items-center" on:click={() => goto(`/r/${topic}`)}>
-			<GlobalIcon size={12} />
+			
+				{#if $page.data.r === topic}
+					<button class="hover:variant-outline-error p-1 m-2 rounded" on:click={() => handleDeleteTopic(topic)}><CloseIcon size={16} /></button>
+				{:else}
+				<span class=" p-1 m-2 rounded"><GlobalIcon size={12} /></span>
+				{/if}
+			
 			<small>{topic}</small>
 		</button>
 		</section>

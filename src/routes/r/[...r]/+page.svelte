@@ -12,6 +12,7 @@ $: roomParams = {
     rK: data.rK,
     rP: getPublicKey(hexToBytes(data.rK)),
 }
+
 </script>
 {#key roomParams}
 <ChatComponent rK={roomParams.rK} r={roomParams.r} rP={roomParams.rP} isAnon={$appSetings.isAnon} />

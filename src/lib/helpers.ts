@@ -1,10 +1,13 @@
-import { NDKEvent, NDKNip07Signer, type NDKUser, type NDKUserProfile, type NostrEvent } from "@nostr-dev-kit/ndk";
-import { get as getStore } from "svelte/store";
-import ndkStore, { ndkUser } from "$lib/stores/provider";
+import { NDKEvent, NDKNip07Signer, NDKPrivateKeySigner, type NDKUser, type NDKUserProfile, type NostrEvent } from "@nostr-dev-kit/ndk";
+import { get, get as getStore } from "svelte/store";
+import ndkStore, { defaulRelaysUrls, ndkUser } from "$lib/stores/provider";
 import { getEventHash, type Event, verifyEvent } from "nostr-tools";
 import { appSetings } from "./stores/localStore";
 import { browser } from "$app/environment";
 import { db } from "@nostr-dev-kit/ndk-cache-dexie";
+import { goto } from "$app/navigation";
+import { page } from "$app/stores";
+import { RelayList } from "nostr-tools/kinds";
 
 
 
@@ -123,3 +126,31 @@ export async function NDKlogin(): Promise<NDKUser | undefined> {
     return new Date(unixTimestamp * 1000).toLocaleString("en-US", options);
   }
   
+  export function handleDeleteTopic(topic: string): void {
+    let $appSetings = get(appSetings)
+    let $page = get(page)
+		appSetings.update((currentState) => {
+			return {
+				lastUserLogged: currentState.lastUserLogged,
+				isAnon: currentState.isAnon,
+				rTopics: currentState.rTopics.filter((value) => value !== topic),
+		}});
+		console.log($appSetings.rTopics);
+		if ($appSetings.rTopics.length == 0) {goto("/")} else goto(`/${$page.route.id?.split("/")[1]}/${$appSetings.rTopics[0]}`);
+	}
+
+  export async function announceTopic(publicKey: string, publicName: string, secretKey: string) {
+    const ndk = get(ndkStore);
+    const topic = ndk.getUser({pubkey: publicKey});
+    await topic.fetchProfile();
+    topic.profile!.name = publicName;
+    topic.profile!.about = `Topic: ${publicName}`;
+    const signer = new NDKPrivateKeySigner(secretKey);
+    ndk.signer = signer;
+    const relayListEvent = new NDKEvent(ndk);
+    relayListEvent.kind = RelayList
+    relayListEvent.tags = defaulRelaysUrls.map((url) => ["r", url]);
+    await relayListEvent.publish();
+    await topic.publish();
+
+  }
