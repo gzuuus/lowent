@@ -3,14 +3,14 @@ import NDKCacheAdapterDexie from '@nostr-dev-kit/ndk-cache-dexie';
 import { browser } from '$app/environment';
 import NDKSvelte from '@nostr-dev-kit/ndk-svelte';
 import type { NDKCacheAdapter, NDKUser } from '@nostr-dev-kit/ndk';
-
+import { dbName } from './constants';
 let cacheAdapter: NDKCacheAdapter | undefined;
 
 if (browser) {
 	cacheAdapter = new NDKCacheAdapterDexie({
-		dbName: 'lowent-v1',
-		expirationTime: 3600 * 24 * 1
-	});
+		dbName: dbName,
+		expirationTime: 3600 * 24 * 1,
+	});	
 }
 
 export const defaulRelaysUrls: string[] = [
