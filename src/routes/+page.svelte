@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { handleDeleteTopic } from '$lib/helpers';
+	import CloseIcon from '$lib/icons/close-icon.svelte';
+	import { appSetings } from '$lib/stores/localStore';
 	let searchGoto: string;
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
@@ -27,5 +30,16 @@
 			/>
 			<button class="variant-filled-primary" on:click={() => goto(`/r/${searchGoto}`)}>go</button>
 		</div>
+		{#each $appSetings.rTopics as topic}
+		<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
+			<button
+			 class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
+			 on:click={() => goto(`/r/${topic}`)}
+			 >
+				{topic}
+			</button>
+			<button on:click={() => handleDeleteTopic(topic)}><CloseIcon size={16} /></button>
+		</div>
+		{/each}
 	</section>
 </div>

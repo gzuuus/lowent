@@ -18,6 +18,7 @@
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import CloseIcon from '$lib/icons/close-icon.svelte';
+	import SideNav from '$lib/components/side-nav.svelte';
 	initializeStores();
 	const drawerStore = getDrawerStore();
 
@@ -48,13 +49,16 @@
 <Drawer class={classesDrawer}>
 	<div class="flex flex-col h-full overflow-hidden">
 		{#if $drawerStore.id === 'side-nav'}
-			<div class="grid h-full py-2 px-2">Hello</div>
+			<div class="grid h-full py-2 px-2">
+				<SideNav />
+			</div>
 		{/if}
 	</div>
 </Drawer>
 <!-- App Shell -->
 <AppShell>
 	<svelte:fragment slot="sidebarLeft">
+		<div class="hidden h-full sm:block ">
 		<AppRail>
 			<AppRailTile
 				bind:group={currentTile}
@@ -147,8 +151,7 @@
 				{/if}
 			</svelte:fragment>
 		</AppRail>
-	</svelte:fragment>
-	<div class="h-screen p-4">
-		<slot />
 	</div>
+	</svelte:fragment>
+		<slot />
 </AppShell>

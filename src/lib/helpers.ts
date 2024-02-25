@@ -15,6 +15,7 @@ import { db } from '@nostr-dev-kit/ndk-cache-dexie';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { RelayList } from 'nostr-tools/kinds';
+import { ownDb } from './stores/ownerMsgsDb';
 
 export async function NDKlogin(): Promise<NDKUser | undefined> {
 	console.log('NDKlogin');
@@ -168,3 +169,15 @@ export async function announceTopic(publicKey: string, publicName: string, secre
 	await relayListEvent.publish();
 	await topic.publish();
 }
+
+export async function addIdToDb(idToAdd: string): Promise<boolean> {
+    try {
+		const id = await ownDb.ownedMsgs.add({
+			id: idToAdd
+		})
+		return true;
+    } catch (error) {
+		console.error(error);
+		return false;
+	}
+  }

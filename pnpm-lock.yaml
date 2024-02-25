@@ -23,6 +23,9 @@ dependencies:
   '@nostr-dev-kit/ndk-svelte':
     specifier: ^2.1.1
     version: 2.2.6(typescript@5.3.3)
+  dexie:
+    specifier: ^3.2.5
+    version: 3.2.5(karma@6.4.2)
   nostr-tools:
     specifier: ^2.3.1
     version: 2.3.1(typescript@5.3.3)

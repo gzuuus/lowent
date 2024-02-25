@@ -6,36 +6,36 @@
 		NDKNip07Signer,
 		type NDKUserProfile
 	} from '@nostr-dev-kit/ndk';
-	import ndk, { ndkUser } from '$lib/stores/provider';
-	import { Avatar } from '@skeletonlabs/skeleton';
+	import ndk from '$lib/stores/provider';
+	import { Avatar, type DrawerSettings } from '@skeletonlabs/skeleton';
 	import { onDestroy, onMount } from 'svelte';
 	import { appSetings } from '$lib/stores/localStore';
 	import { goto } from '$app/navigation';
 	import SendIcon from '$lib/icons/send-icon.svelte';
 	import {
+	addIdToDb,
 		announceTopic,
 		fetchUserProfile,
 		finaliceEvent,
 		handleDeleteTopic,
-		unixToDate,
-		verifyAuthEvent
 	} from '$lib/helpers';
 	import type { idSignatureObj } from '$lib/interfaces';
 	import { page } from '$app/stores';
-	import CheckIcon from '$lib/icons/check-icon.svelte';
 	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import LinkOut from '$lib/icons/link-out.svelte';
 	import { outNostrLinksUrl, outNostrLinksUrlCLient } from '$lib/stores/constants';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import ChatBubble from './chat-bubble.svelte';
+	import HomeIcon from '$lib/icons/home-icon.svelte';
+	import HamMenuIcon from '$lib/icons/ham-menu-icon.svelte';
+	import { Drawer, getDrawerStore } from '@skeletonlabs/skeleton';
 	export let r: string;
 	export let rK: string;
 	export let rP: string;
 	export let isAnon: boolean = false;
-
+	const drawerStore = getDrawerStore();
 	let elemChat: HTMLElement;
 
-	let ownerMessages = new Set<string>([]);
 	let currentMessage = '';
 
 	function scrollChatTop(behavior?: ScrollBehavior): void {
@@ -84,12 +84,8 @@
 					['sig', idSignatures.sigAuthor]
 				]
 			: [];
-		if (isAnon) {
-			const finEvent = await finaliceEvent(ndkEventFinal);
-			console.log(finEvent);
-			ownerMessages.add(finEvent.id!);
-		}
 		await ndkEventFinal.publish();
+		await addIdToDb(ndkEventFinal.id!);
 		currentMessage = '';
 		setTimeout(() => {
 			scrollChatTop('smooth');
@@ -126,6 +122,17 @@
 		roomProfile = await fetchUserProfile(rP);
 		roomProfile = roomProfile?.name ? roomProfile : undefined;
 	}
+	let searchGoto: string;
+	function drawerOpen(): void {
+		const s: DrawerSettings = { 
+			id: 'side-nav',
+			width: 'w-[280px] md:w-[480px]',
+			padding: 'p-2',
+			rounded: 'rounded-xl',
+			position: 'right'
+			};
+		drawerStore.open(s);
+	}
 	onMount(async () => {
 		if (!$appSetings.rTopics.includes(r)) {
 			appSetings.update((currentState) => {
@@ -143,7 +150,6 @@
 	onDestroy(() => {
 		chatMessages.unsubscribe();
 	});
-	let searchGoto: string;
 </script>
 
 <div class="chat w-full h-full grid grid-cols-1 sm:grid-cols-[30%_1fr]">
@@ -183,31 +189,45 @@
 	<!-- Chat -->
 	<div class="grid grid-rows-[1fr_auto] h-full max-h-screen">
 		<!-- Conversation -->
-		<header class="grid grid-cols-[1fr_auto] h-fit border-b border-surface-700 px-2 items-center">
-			<small>{r}</small>
-			<section class=" inline-flex items-baseline">
-				{#if !roomProfile}
-					<button class="btn btn-sm" on:click={handleAnnounceTopic}
+		<header class="flex flex-col h-fit border-b border-surface-700">
+			<div class="sm:hidden w-full flex justify-between variant-soft">
+				<section>
+					<button class=" btn-icon btn-icon-sm" on:click={() => goto('/')}>
+						<HomeIcon size={22} />
+					</button>
+				</section>
+				<section >
+					<button class=" btn-icon btn-icon-sm" on:click={() => drawerOpen()}>
+						<HamMenuIcon size={22} />
+					</button>
+				</section>
+			</div>
+			<div class="hidden w-full sm:flex justify-between px-2 py-1">
+				<small>{r}</small>
+				<section class=" inline-flex items-baseline">
+					{#if !roomProfile}
+						<button class="btn btn-sm" on:click={handleAnnounceTopic}
+							><span class=" inline-flex gap-1 badge variant-ghost"
+								><GlobalIcon size={16} />Announce</span
+							></button
+						>
+					{/if}
+					<a
+						href={roomProfile
+							? `${outNostrLinksUrl}/${npubEncode(rP)}`
+							: `${outNostrLinksUrlCLient}/${npubEncode(rP)}/notes`}
+						target="_blank"
+						rel="noreferrer"
 						><span class=" inline-flex gap-1 badge variant-ghost"
-							><GlobalIcon size={16} />Announce</span
-						></button
+							><LinkOut size={16} />See outside</span
+						></a
 					>
-				{/if}
-				<a
-					href={roomProfile
-						? `${outNostrLinksUrl}/${npubEncode(rP)}`
-						: `${outNostrLinksUrlCLient}/${npubEncode(rP)}/notes`}
-					target="_blank"
-					rel="noreferrer"
-					><span class=" inline-flex gap-1 badge variant-ghost"
-						><LinkOut size={16} />See outside</span
-					></a
-				>
-			</section>
+				</section>
+			</div>
 		</header>
 		<section bind:this={elemChat} class="p-4 overflow-y-auto space-y-4 break-all">
 			{#each $chatMessages as bubble}
-				<ChatBubble bubble={bubble} r={r} ownerMessages={ownerMessages} />
+				<ChatBubble bubble={bubble} r={r}/>
 			{/each}
 		</section>
 		<!-- Prompt -->
