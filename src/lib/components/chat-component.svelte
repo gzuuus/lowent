@@ -43,7 +43,6 @@
 	}
 
 	async function addMessage(isAnon: boolean): Promise<void> {
-		if (currentMessage === '') return;
 		let eventValues = {
 			kind: 1,
 			created_at: Math.floor(Date.now() / 1000),
