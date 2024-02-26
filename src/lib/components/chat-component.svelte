@@ -26,10 +26,8 @@
 	import { outNostrLinksUrl, outNostrLinksUrlCLient } from '$lib/stores/constants';
 	import { npubEncode } from 'nostr-tools/nip19';
 	import ChatBubble from './chat-bubble.svelte';
-	import HomeIcon from '$lib/icons/home-icon.svelte';
 	import HamMenuIcon from '$lib/icons/ham-menu-icon.svelte';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	import { ownDb } from '$lib/stores/ownerMsgsDb';
 	export let r: string;
 	export let rK: string;
 	export let rP: string;
@@ -85,8 +83,8 @@
 					['sig', idSignatures.sigAuthor]
 				]
 			: [];
+		await addIdToDb((await finaliceEvent(ndkEventFinal)).id!);
 		await ndkEventFinal.publish();
-		await addIdToDb(ndkEventFinal.id!);
 		currentMessage = '';
 		setTimeout(() => {
 			scrollChatTop('smooth');
@@ -191,11 +189,9 @@
 	<div class="grid grid-rows-[1fr_auto] h-full max-h-screen">
 		<!-- Conversation -->
 		<header class="flex flex-col h-fit border-b border-surface-700">
-			<div class=" w-full flex justify-between variant-soft items-baseline px-2">
-				<section class=" flex flex-row items-center">
-					<button class=" btn-icon btn-icon-sm">
-						<GlobalIcon size={18} />
-					</button>
+			<div class=" w-full flex justify-between variant-soft items-center px-2">
+				<section class=" flex flex-row items-center gap-1">
+					<span><GlobalIcon size={18} /></span>
 					<span>r/<strong>{r}</strong></span>
 				</section>
 				<div class=" inline-flex items-center">
@@ -226,8 +222,8 @@
 				</div>
 			</div>
 		</header>
-		<section bind:this={elemChat} class="p-4 overflow-y-auto space-y-4 break-all">
-			{#each $chatMessages as bubble}
+		<section bind:this={elemChat} class="p-2 overflow-y-scroll space-y-2 break-all">
+			{#each $chatMessages as bubble (bubble.id)}
 				<ChatBubble bubble={bubble} r={r}/>
 			{/each}
 		</section>

@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { fetchUserProfile, unixToDate, verifyAuthEvent } from "$lib/helpers";
 	import CheckIcon from "$lib/icons/check-icon.svelte";
-	import { ownDb } from "$lib/stores/ownerMsgsDb";
+	import { ownDb, type ownedMsgs } from "$lib/stores/ownerMsgsDb";
 	import { ndkUser } from "$lib/stores/provider";
 	import type { NDKEvent } from "@nostr-dev-kit/ndk";
 	import { Avatar } from "@skeletonlabs/skeleton";
+	import { onMount } from "svelte";
     export let bubble: NDKEvent;
     export let r: string;
+    let ownId: ownedMsgs | null; 
+	const verifyOwnedMsg = async() => {
+		return ownDb.ownedMsgs.where({ id: bubble.id }).first().then((result) => {
+			ownId = result || null;
+		});
+	};
+    onMount(async() => {
+		await verifyOwnedMsg();
+	});
 </script>
-{#await ownDb.ownedMsgs.where({ id: bubble.id }).first() then ownId}
 {#if bubble.tagValue('sig') == undefined}
 <div class="grid {ownId ? 'grid grid-cols-[1fr_auto]' : 'grid-cols-[auto_1fr]'} gap-2">
     {#if !ownId}<Avatar initials={r} width="w-11" background="bg-surface-500/30" />{/if}
@@ -69,4 +78,3 @@
     {/await}
 </div>
 {/if}
-{/await}

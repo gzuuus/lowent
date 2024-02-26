@@ -17,7 +17,7 @@
 <div class=" h-full flex flex-col items-center justify-center text-center">
 	<section class=" sm:card w-fit p-4 flex flex-col gap-2 max-w-sm">
 		<section class=" self-center">
-			<Logo size={60} />
+			<Logo size={75} />
 		</section>
 		<h1 class="h2">LowEnt</h1>
 		<h3 class="h4">(demo)</h3>
