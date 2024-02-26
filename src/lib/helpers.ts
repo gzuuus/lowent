@@ -8,8 +8,8 @@ import {
 } from '@nostr-dev-kit/ndk';
 import { get, get as getStore } from 'svelte/store';
 import ndkStore, { defaulRelaysUrls, ndkUser } from '$lib/stores/provider';
-import { getEventHash, type Event, verifyEvent } from 'nostr-tools';
-import { appSetings } from './stores/localStore';
+import { getEventHash, verifyEvent } from 'nostr-tools';
+import { appSettings } from './stores/localStore';
 import { browser } from '$app/environment';
 import { db } from '@nostr-dev-kit/ndk-cache-dexie';
 import { goto } from '$app/navigation';
@@ -18,7 +18,6 @@ import { RelayList } from 'nostr-tools/kinds';
 import { ownDb } from './stores/ownerMsgsDb';
 
 export async function NDKlogin(): Promise<NDKUser | undefined> {
-	console.log('NDKlogin');
 	const $ndk = getStore(ndkStore);
 	try {
 		const signer = new NDKNip07Signer();
@@ -28,12 +27,9 @@ export async function NDKlogin(): Promise<NDKUser | undefined> {
 		let user = $ndk.getUser({
 			npub: ndkCurrentUser.npub
 		});
-
-		//   const followsSet = await user.follows();
-		//   const followsArray = Array.from(followsSet as Set<NDKUser>);
 		await user.fetchProfile();
 		ndkUser.set(user);
-		appSetings.update((currentState) => {
+		appSettings.update((currentState) => {
 			return {
 				lastUserLogged: ndkCurrentUser.pubkey,
 				isAnon: false,
@@ -41,17 +37,6 @@ export async function NDKlogin(): Promise<NDKUser | undefined> {
 			};
 		});
 		return user;
-		// console.log(userProfile);
-		//   await isNip05Valid(userProfile?.nip05, user.npub);
-		//   const nip05ValidStore = getStore(isNip05ValidStore);
-		//   localStore.update((currentState) => {
-		//     return {
-		//       lastUserLogged: ndkCurrentUser.npub,
-		//       lastUserTheme: currentState.lastUserTheme,
-		//       currentUserFollows: followsArray.map((user) => user.pubkey),
-		//       UserIdentifier: nip05ValidStore.UserIdentifier,
-		//     };
-		//   });
 	} catch (error) {
 		return undefined;
 	}
@@ -77,7 +62,7 @@ export async function finaliceEvent(ndkEvent: NDKEvent): Promise<NostrEvent> {
 
 export function logout() {
 	ndkUser.set(undefined);
-	appSetings.update((currentState) => {
+	appSettings.update((currentState) => {
 		return {
 			lastUserLogged: undefined,
 			isAnon: true,
@@ -140,22 +125,23 @@ export function unixToDate(unixTimestamp: number) {
 }
 
 export function handleDeleteTopic(topic: string): void {
-	let $appSetings = get(appSetings);
+	let $appSettings = get(appSettings);
 	let $page = get(page);
-	appSetings.update((currentState) => {
+	appSettings.update((currentState) => {
 		return {
 			lastUserLogged: currentState.lastUserLogged,
 			isAnon: currentState.isAnon,
 			rTopics: currentState.rTopics.filter((value) => value !== topic)
 		};
 	});
-	console.log($appSetings.rTopics);
-	if ($appSetings.rTopics.length == 0) {
+	console.log($appSettings.rTopics);
+	if ($appSettings.rTopics.length == 0) {
 		goto('/');
-	} else goto(`/${$page.route.id?.split('/')[1]}/${$appSetings.rTopics[0]}`);
+	} else goto(`/${$page.route.id?.split('/')[1]}/${$appSettings.rTopics[0]}`);
 }
 
 export async function announceTopic(publicKey: string, publicName: string, secretKey: string) {
+	// TODO add tag to fetch and discover
 	const ndk = get(ndkStore);
 	const topic = ndk.getUser({ pubkey: publicKey });
 	await topic.fetchProfile();

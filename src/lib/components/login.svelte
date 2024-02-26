@@ -1,29 +1,23 @@
 <script lang="ts">
 	export let mode: string | undefined = 'primary';
-	// export let doGoto: boolean = true;
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	// import ProfileIcon from "$lib/elements/icons/profile-icon.svelte";
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
-	import { NDKlogin } from '$lib/helpers';
-	//   import { localStore } from "$lib/stores/localStore";
-	import { get } from 'svelte/store';
+	import { logout, NDKlogin } from '$lib/helpers';
+	import { ndkUser } from '$lib/stores/provider';
+	import AnonToggle from './anon-toggle.svelte';
+	import LogoutIcon from '$lib/icons/logout-icon.svelte';
+	const modalStore = getModalStore();
 
-	// const modalStore = getModalStore();
-	//   const modal: ModalSettings = {
-	//       type: 'component',
-	//       component: 'modalNoNip07',
-	//   }
+	const modal: ModalSettings = {
+	      type: 'component',
+	      component: 'modalNoNip07',
+	  }
 	async function login() {
 		const login = await NDKlogin();
 		if (!login) {
+			modalStore.trigger(modal)
 			console.log('Login error');
 			return;
 		}
-		// if (doGoto) {
-		//   const {UserIdentifier} = get(localStore)
-		//   goto(`/${UserIdentifier ? UserIdentifier : login.npub}`);
-		// }
 	}
 
 	$: buttonClass =
@@ -37,5 +31,13 @@
 						? 'common-btn-filled justify-start w-full hover:text-current'
 						: 'hidden';
 </script>
-
-<button class={buttonClass} on:click={login}>Login</button>
+{#if !$ndkUser}
+	<button class={buttonClass} on:click={login}>Login</button>
+{:else}
+	<section class=" flex flex-row items-center gap-2">
+		<span class=" opacity-70">Publishing as: </span><AnonToggle mode={'inline'} />
+		<button type="button" class="btn-icon btn-icon-sm variant-ghost-error" on:click={logout}>
+			<LogoutIcon size={16} />
+		</button>
+	</section>
+{/if}

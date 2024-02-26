@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Login from '$lib/components/login.svelte';
 	import { handleDeleteTopic } from '$lib/helpers';
+	import Logo from '$lib/icons/Logo.svelte';
 	import CloseIcon from '$lib/icons/close-icon.svelte';
-	import { appSetings } from '$lib/stores/localStore';
+	import { appSettings } from '$lib/stores/localStore';
 	let searchGoto: string;
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
@@ -12,10 +14,13 @@
 	}
 </script>
 
-<div class=" h-full flex items-center justify-center text-center">
-	<section class=" card w-fit p-4 flex flex-col gap-2 max-w-sm">
-		<h1 class="h1">LowEnt</h1>
-		<h3 class="h3">(demo)</h3>
+<div class=" h-full flex flex-col items-center justify-center text-center">
+	<section class=" sm:card w-fit p-4 flex flex-col gap-2 max-w-sm">
+		<section class=" self-center">
+			<Logo size={60} />
+		</section>
+		<h1 class="h2">LowEnt</h1>
+		<h3 class="h4">(demo)</h3>
 		<p>Be anon, or not, chat freely about anything</p>
 		<p class="opacity-50">
 			Exploring the use of low-entropy keys to establish shared topics and rooms.
@@ -30,7 +35,7 @@
 			/>
 			<button class="variant-filled-primary" on:click={() => goto(`/r/${searchGoto}`)}>go</button>
 		</div>
-		{#each $appSetings.rTopics as topic}
+		{#each $appSettings.rTopics as topic}
 		<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
 			<button
 			 class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
@@ -41,5 +46,8 @@
 			<button on:click={() => handleDeleteTopic(topic)}><CloseIcon size={16} /></button>
 		</div>
 		{/each}
+	</section>
+	<section class=" sm:hidden flex">
+		<Login mode={'primary'} />
 	</section>
 </div>

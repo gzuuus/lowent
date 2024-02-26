@@ -1,14 +1,14 @@
 <script lang="ts">
 	import '../app.postcss';
 	import ndk, { ndkUser } from '$lib/stores/provider';
-	import { AppShell, SlideToggle, LightSwitch, Drawer } from '@skeletonlabs/skeleton';
+	import { AppShell, LightSwitch, Drawer, Modal, type ModalComponent } from '@skeletonlabs/skeleton';
 
 	// Floating UI for Popups
 	import { computePosition, autoUpdate, flip, shift, offset, arrow } from '@floating-ui/dom';
 	import { storePopup } from '@skeletonlabs/skeleton';
 	import { AppRail, AppRailTile, AppRailAnchor } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
-	import { appSetings } from '$lib/stores/localStore';
+	import { appSettings } from '$lib/stores/localStore';
 	import { page } from '$app/stores';
 	import HomeIcon from '$lib/icons/home-icon.svelte';
 	import GlobalIcon from '$lib/icons/global-icon.svelte';
@@ -19,17 +19,24 @@
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import CloseIcon from '$lib/icons/close-icon.svelte';
 	import SideNav from '$lib/components/side-nav.svelte';
+	import { onMount } from 'svelte';
+	import { ownDb } from '$lib/stores/ownerMsgsDb';
+	import AnonToggle from '$lib/components/anon-toggle.svelte';
+	import NoExtensionModal from '$lib/components/modals/no-extension-modal.svelte';
 	initializeStores();
 	const drawerStore = getDrawerStore();
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
+	const modalRegistry: Record<string, ModalComponent> = {
+		modalNoNip07: { ref: NoExtensionModal},
+	};
 	let currentTile: string | number = 0;
 	let isAnon: boolean = $ndkUser ? false : true;
 	ndkUser.subscribe(() => {
 		isAnon = $ndkUser ? false : true;
 	});
 	$: {
-		$appSetings.isAnon = isAnon;
+		$appSettings.isAnon = isAnon;
 		if ($page.route.id?.split('/')[1] == '') {
 			currentTile = 0;
 		} else if ($page.route.id?.split('/')[1] == 'r') {
@@ -38,6 +45,9 @@
 	}
 
 	$: classesDrawer = $drawerStore.id === 'side-nav' ? 'sm:hidden' : '';
+	onMount(async () => {
+		await ownDb.open();
+	})
 </script>
 
 <svelte:head>
@@ -46,6 +56,7 @@
 	<meta property="og:title" content="LowEnt" />
 	<meta property="og:description" content="Be anon, or not, chat freely about anything" />
 </svelte:head>
+<Modal components={modalRegistry} />
 <Drawer class={classesDrawer}>
 	<div class="flex flex-col h-full overflow-hidden">
 		{#if $drawerStore.id === 'side-nav'}
@@ -80,13 +91,13 @@
 				regionLead="w-fit m-auto"
 				title="tile-1"
 				on:click={() =>
-					goto(`/r/${$appSetings.rTopics[0] ? $appSetings.rTopics[0] : 'LowEnt[Help]'}`)}
+					goto(`/r/${$appSettings.rTopics[0] ? $appSettings.rTopics[0] : 'LowEnt[Help]'}`)}
 			>
 				<svelte:fragment slot="lead"><GlobalIcon size={22} /></svelte:fragment>
 				<span>Global</span>
 			</AppRailTile>
 			<div class="sm:hidden">
-				{#each $appSetings.rTopics as topic}
+				{#each $appSettings.rTopics as topic}
 					<AppRailTile
 						bind:group={currentTile}
 						name="tile-1"
@@ -127,10 +138,7 @@
 						</div>
 					</AppRailAnchor>
 					<AppRailAnchor title="Account" name="tile-4">
-						<div class=" flex flex-col items-center">
-							<span>{isAnon ? 'Anon' : $ndkUser?.profile.name}</span>
-							<SlideToggle name="slider-label" size="sm" bind:checked={isAnon} />
-						</div>
+						<AnonToggle />
 					</AppRailAnchor>
 					<AppRailAnchor>
 						<section class=" flex place-content-center py-2">

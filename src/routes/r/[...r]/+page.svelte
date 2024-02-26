@@ -3,7 +3,7 @@
 	import { type RoomParams } from '$lib/interfaces';
 	import { hexToBytes } from '@noble/hashes/utils';
 	import { getPublicKey } from 'nostr-tools';
-	import { appSetings } from '$lib/stores/localStore.js';
+	import { appSettings } from '$lib/stores/localStore.js';
 	import { browser } from '$app/environment';
 	export let data;
 	let roomParams: RoomParams;
@@ -20,7 +20,7 @@
 		rK={roomParams.rK}
 		r={roomParams.r}
 		rP={roomParams.rP}
-		isAnon={$appSetings.isAnon}
+		isAnon={$appSettings.isAnon}
 	/>
 {/key}
 {/if}

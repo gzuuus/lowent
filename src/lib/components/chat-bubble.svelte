@@ -5,18 +5,13 @@
 	import { ndkUser } from "$lib/stores/provider";
 	import type { NDKEvent } from "@nostr-dev-kit/ndk";
 	import { Avatar } from "@skeletonlabs/skeleton";
-	import { onMount } from "svelte";
     export let bubble: NDKEvent;
     export let r: string;
-    let ownId: boolean
-    onMount(async() => {
-        ownId = await ownDb.ownedMsgs.where({ id: bubble.id }).first() ? true : false
-        console.log(ownId)
-    })
 </script>
-{#if bubble.tagValue('sig') === undefined}
+{#await ownDb.ownedMsgs.where({ id: bubble.id }).first() then ownId}
+{#if bubble.tagValue('sig') == undefined}
 <div class="grid {ownId ? 'grid grid-cols-[1fr_auto]' : 'grid-cols-[auto_1fr]'} gap-2">
-    {#if !ownId}<Avatar initials={r} width="w-12" background="bg-surface-500/30" />{/if}
+    {#if !ownId}<Avatar initials={r} width="w-11" background="bg-surface-500/30" />{/if}
     <div class="card p-4 rounded-tl-none space-y-2 variant-soft-primary {ownId ? 'variant-soft' : 'variant-soft-primary'}">
         <header class="flex justify-between items-center flex-wrap">
             <p class="font-bold">{r}</p>
@@ -26,7 +21,7 @@
         </header>
         <p>{bubble.content}</p>
     </div>
-    {#if ownId}<Avatar initials={r} width="w-12" background="bg-surface-500/30" />{/if}
+    {#if ownId}<Avatar initials={r} width="w-11" background="bg-surface-500/30" />{/if}
 </div>
 {:else if $ndkUser?.pubkey == bubble.tagValue('p')}
 {#await fetchUserProfile(bubble.tagValue('p')) then value}
@@ -43,7 +38,7 @@
         <Avatar
             initials={value?.name}
             src={value?.picture ? value?.picture : value?.image}
-            width="w-12"
+            width="w-11"
         />
     </div>
 {/await}
@@ -53,7 +48,7 @@
         <Avatar
             initials={value?.name}
             src={value?.picture ? value?.picture : value?.image}
-            width="w-12"
+            width="w-11"
         />
         <div
             class="card p-4 rounded-tr-none space-y-2 border-l-2 border-opacity-5 variant-soft-primary"
@@ -74,3 +69,4 @@
     {/await}
 </div>
 {/if}
+{/await}
