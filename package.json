@@ -23,6 +23,8 @@
 		"@tailwindcss/forms": "0.5.7",
 		"@tailwindcss/typography": "0.5.10",
 		"@types/eslint": "8.56.0",
+		"@types/linkify-it": "^3.0.5",
+		"@types/markdown-it": "^13.0.7",
 		"@types/node": "20.11.19",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
@@ -50,6 +52,8 @@
 		"@nostr-dev-kit/ndk-cache-dexie": "^2.1.1",
 		"@nostr-dev-kit/ndk-svelte": "^2.1.1",
 		"dexie": "^3.2.5",
+		"linkify-it": "^5.0.0",
+		"markdown-it": "^14.0.0",
 		"nostr-tools": "^2.3.1"
 	}
 }

@@ -246,7 +246,6 @@
 					<SendIcon size={16} />
 				</button>
 			</div>
-			<!-- Publishing as: {isAnon ? "Anon" : $ndkUser?.profile?.name} -->
 		</section>
 	</div>
 </div>
