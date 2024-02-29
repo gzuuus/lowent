@@ -1,5 +1,5 @@
 [~] Make encrypted rooms
-//Todo: decrypt
+// Add aliases to cupher rooms by adding metedata to kin-0
 [ ] keep improving responsivenes
 [ ] keep improving performance
 [ ] Make secure rooms with secured strings (UUID)

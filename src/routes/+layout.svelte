@@ -31,6 +31,7 @@
 	import NoExtensionModal from '$lib/components/modals/no-extension-modal.svelte';
 	import CypherIcon from '$lib/icons/cipher-icon.svelte';
 	initializeStores();
+	initializeAppSettings();
 	const drawerStore = getDrawerStore();
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
@@ -55,8 +56,7 @@
 
 	$: classesDrawer = $drawerStore.id === 'side-nav' ? 'sm:hidden' : '';
 	onMount(async () => {
-		await ownDb.open();
-		initializeAppSettings();
+		await ownDb.open();		
 	});
 </script>
 
