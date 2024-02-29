@@ -7,7 +7,7 @@
 		type NDKUserProfile
 	} from '@nostr-dev-kit/ndk';
 	import ndk from '$lib/stores/provider';
-	import { Avatar, type DrawerSettings } from '@skeletonlabs/skeleton';
+	import { Avatar, getModalStore, type DrawerSettings, type ModalSettings } from '@skeletonlabs/skeleton';
 	import { onDestroy, onMount } from 'svelte';
 	import { appSettings } from '$lib/stores/localStore';
 	import { goto } from '$app/navigation';
@@ -42,7 +42,9 @@
 	export let isAnon: boolean = false;
 	export let type: TopicType;
 	const drawerStore = getDrawerStore();
+	const modalStore = getModalStore();
 	let showQr: boolean = false;
+	
 	let elemChat: HTMLElement;
 
 	let currentMessage = '';
@@ -127,11 +129,6 @@
 		}
 	);
 	let roomProfile: NDKUserProfile | undefined;
-	// async function handleAnnounceTopic(): Promise<void> {
-	// 	await announceTopic(rP, r, rK);
-	// 	roomProfile = await fetchUserProfile(rP);
-	// 	roomProfile = roomProfile?.name ? roomProfile : undefined;
-	// }
 	let searchGoto: string;
 	function drawerOpen(): void {
 		const s: DrawerSettings = {
@@ -142,6 +139,27 @@
 			position: 'right'
 		};
 		drawerStore.open(s);
+	}
+	function craftQrModal() {
+		const modal: ModalSettings = {
+		type: 'component',
+		component: 'modalQr',
+		meta: {
+			toQr: $page.url.pathname.split('/').length > 2 ? $page.url.href : `${$page.url.href}/${roomParams.r}`
+		}
+		};
+		modalStore.trigger(modal);
+	}
+	function craftAnnounceModal() {
+		const modal: ModalSettings = {
+		type: 'component',
+		component: 'modalAnnounce',
+		meta: {
+			roomParams: roomParams,
+			allowJoin: $page.url.pathname.split('/').length > 2 ? $page.url.href : `${$page.url.href}/${roomParams.r}`
+		}
+		};
+		modalStore.trigger(modal);
 	}
 	$: roomAppSettings = type == 'r' ? $appSettings.rTopics : $appSettings.cTopics;
 	onMount(async () => {
@@ -155,8 +173,8 @@
 				};
 			});
 		}
-		// roomProfile = await fetchUserProfile(rP);
-		// roomProfile = roomProfile?.name ? roomProfile : undefined;
+		roomProfile = await fetchUserProfile(roomParams.rP);
+		roomProfile = roomProfile?.name ? roomProfile : undefined;
 		scrollChatTop();
 	});
 	onDestroy(() => {
@@ -164,7 +182,7 @@
 	});
 </script>
 
-<div class="chat w-full h-full grid grid-cols-1 sm:grid-cols-[30%_1fr]">
+<div class="chat w-full h-full grid grid-cols-1 sm:grid-cols-[30%_1fr] lg:grid-cols-[20%_1fr]">
 	<!-- Navigation -->
 	<div class="hidden sm:grid grid-rows-[auto_1fr_auto] border-r border-surface-500/30">
 		<!-- Header -->
@@ -193,6 +211,10 @@
 						<Avatar initials="X" width="w-6" on:click={() => handleDeleteTopic(topic, type)} />
 						<span class="flex-1 text-start break-all">
 							{topic}
+							{#if roomProfile?.name}
+								<br/>
+								<small class=" text-xs opacity-60">{#if roomProfile?.name && topic == roomParams.r}({roomProfile.name}){/if}</small>
+							{/if}
 						</span>
 					</button>
 				{/each}
@@ -214,28 +236,19 @@
 		<header class="flex flex-col h-fit border-b border-surface-700">
 			<div class=" w-full flex justify-between variant-soft items-center px-2">
 				<section class=" flex flex-row items-center gap-1">
-					<button class="btn-icon btn-icon-sm" on:click={() => (showQr = !showQr)}
+					<button class="btn-icon btn-icon-sm" on:click={craftQrModal}
 						><QrIcon size={18} /></button
 					>
 					<span>{type}/<strong>{roomParams.r}</strong></span>
-					{#if showQr}
-						<QrCode
-							toQr={$page.url.pathname.split('/').length > 2
-								? $page.url.href
-								: `${$page.url.href}/${roomParams.r}`}
-						/>
-					{/if}
 				</section>
 
 				<div class=" inline-flex items-center">
 					<section class=" inline-flex items-baseline justify-end">
-						<!-- {#if !roomProfile}
-							<button class="btn btn-sm" on:click={handleAnnounceTopic}
+							<button class="btn btn-sm" on:click={craftAnnounceModal}
 								><span class=" inline-flex gap-1 badge variant-ghost"
-									><GlobalIcon size={16} />Announce</span
+									><GlobalIcon size={16} />{!roomProfile?.name ? 'Announce' : 'Update'}</span
 								></button
 							>
-						{/if} -->
 						{#if type != 'c'}
 							<a
 								href={roomProfile
@@ -244,7 +257,7 @@
 								target="_blank"
 								rel="noreferrer"
 								><span class=" inline-flex gap-1 badge variant-ghost"
-									><LinkOut size={16} />See outside</span
+									><LinkOut size={16} /></span
 								></a
 							>
 						{/if}

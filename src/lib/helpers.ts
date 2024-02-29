@@ -16,6 +16,7 @@ import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { RelayList } from 'nostr-tools/kinds';
 import { ownDb } from './stores/ownerMsgsDb';
+import type { RoomParams } from './interfaces';
 
 export async function NDKlogin(): Promise<NDKUser | undefined> {
 	const $ndk = getStore(ndkStore);
@@ -152,14 +153,15 @@ export function handleDeleteTopic(topic: string, type: string): void {
 		);
 }
 
-export async function announceTopic(publicKey: string, publicName: string, secretKey: string) {
-	// TODO add tag to fetch and discover
+export async function announceTopic(roomParams: RoomParams, customName?: string, allowJoin?: string) {
+	const roomName = customName?.trim() != '' || undefined ? customName : roomParams.r
 	const ndk = get(ndkStore);
-	const topic = ndk.getUser({ pubkey: publicKey });
+	const topic = ndk.getUser({ pubkey: roomParams.rP });
 	await topic.fetchProfile();
-	topic.profile!.name = publicName;
-	topic.profile!.about = `Topic: ${publicName}`;
-	const signer = new NDKPrivateKeySigner(secretKey);
+	topic.profile!.name = roomName;
+	topic.profile!.about = `Topic: ${roomName}${allowJoin ? `, Connect: ${allowJoin}`: ''}`;
+	topic.profile!.website = allowJoin ? allowJoin : undefined;
+	const signer = new NDKPrivateKeySigner(roomParams.rK);
 	ndk.signer = signer;
 	const relayListEvent = new NDKEvent(ndk);
 	relayListEvent.kind = RelayList;

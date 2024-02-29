@@ -7,8 +7,7 @@
 		let qr = QRcode(0, 'L');
 		qr.addData(value);
 		qr.make();
-		return qr.createDataURL();
+		return qr.createSvgTag(8);
 	}
 </script>
-
-<Avatar src={generateQRCode(toQr)} alt="qrcode" rounded="none" width=" w-36" />
+{@html generateQRCode(toQr)}

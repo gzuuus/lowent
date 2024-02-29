@@ -6,7 +6,8 @@
 		LightSwitch,
 		Drawer,
 		Modal,
-		type ModalComponent
+		type ModalComponent,
+		Toast
 	} from '@skeletonlabs/skeleton';
 
 	// Floating UI for Popups
@@ -19,24 +20,27 @@
 	import HomeIcon from '$lib/icons/home-icon.svelte';
 	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import Login from '$lib/components/login.svelte';
-	import { handleDeleteTopic, initializeAppSettings, logout } from '$lib/helpers';
+	import { initializeAppSettings, logout } from '$lib/helpers';
 	import ShutdownIcon from '$lib/icons/shutdown-icon.svelte';
 	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	import CloseIcon from '$lib/icons/close-icon.svelte';
 	import SideNav from '$lib/components/side-nav.svelte';
 	import { onMount } from 'svelte';
 	import { ownDb } from '$lib/stores/ownerMsgsDb';
 	import AnonToggle from '$lib/components/anon-toggle.svelte';
 	import NoExtensionModal from '$lib/components/modals/no-extension-modal.svelte';
 	import CypherIcon from '$lib/icons/cipher-icon.svelte';
+	import QrModal from '$lib/components/modals/qr-modal.svelte';
+	import AnnounceModal from '$lib/components/modals/announce-modal.svelte';
 	initializeStores();
 	initializeAppSettings();
 	const drawerStore = getDrawerStore();
 
 	storePopup.set({ computePosition, autoUpdate, flip, shift, offset, arrow });
 	const modalRegistry: Record<string, ModalComponent> = {
-		modalNoNip07: { ref: NoExtensionModal }
+		modalNoNip07: { ref: NoExtensionModal },
+		modalQr: { ref: QrModal },
+		modalAnnounce: { ref: AnnounceModal }
 	};
 	let currentTile: string | number = 0;
 	let isAnon: boolean = $ndkUser ? false : true;
@@ -67,6 +71,7 @@
 	<meta property="og:description" content="Be anon, or not, chat freely about anything" />
 </svelte:head>
 <Modal components={modalRegistry} />
+<Toast />
 <Drawer class={classesDrawer}>
 	<div class="flex flex-col h-full overflow-hidden">
 		{#if $drawerStore.id === 'side-nav'}
@@ -101,7 +106,7 @@
 					regionLead="w-fit m-auto"
 					title="tile-1"
 					on:click={() =>
-						goto(`/r/${$appSettings.rTopics[0] ? $appSettings.rTopics[0] : 'LowEnt[Welcome]'}`)}
+						goto(`/r/${$appSettings.rTopics[0] ? $appSettings.rTopics[0] : ''}`)}
 				>
 					<svelte:fragment slot="lead"><GlobalIcon size={22} /></svelte:fragment>
 					<span>Global</span>
@@ -115,7 +120,7 @@
 					on:click={() => goto(`/c/${$appSettings.cTopics[0] ? $appSettings.cTopics[0] : ''}`)}
 				>
 					<svelte:fragment slot="lead"><CypherIcon size={22} /></svelte:fragment>
-					<span>cipher</span>
+					<span>Cipher</span>
 				</AppRailTile>
 				<svelte:fragment slot="trail">
 					{#if $ndkUser?.profile?.name}
