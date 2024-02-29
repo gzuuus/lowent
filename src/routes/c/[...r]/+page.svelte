@@ -17,6 +17,6 @@
 
 {#if browser}
 	{#key roomParams}
-		<ChatComponent {roomParams} isAnon={$appSettings.isAnon} type="r" />
+		<ChatComponent {roomParams} isAnon={$appSettings.isAnon} type="c" />
 	{/key}
 {/if}

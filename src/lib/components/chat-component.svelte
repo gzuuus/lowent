@@ -13,13 +13,18 @@
 	import { goto } from '$app/navigation';
 	import SendIcon from '$lib/icons/send-icon.svelte';
 	import {
-	addIdToDb,
+		addIdToDb,
 		announceTopic,
 		fetchUserProfile,
 		finaliceEvent,
-		handleDeleteTopic,
+		handleDeleteTopic
 	} from '$lib/helpers';
-	import type { idSignatureObj } from '$lib/interfaces';
+	import {
+		typeKindMapping,
+		type idSignatureObj,
+		type TopicType,
+		type RoomParams
+	} from '$lib/interfaces';
 	import { page } from '$app/stores';
 	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import LinkOut from '$lib/icons/link-out.svelte';
@@ -28,11 +33,16 @@
 	import ChatBubble from './chat-bubble.svelte';
 	import HamMenuIcon from '$lib/icons/ham-menu-icon.svelte';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
-	export let r: string;
-	export let rK: string;
-	export let rP: string;
+	import { encrypt } from 'nostr-tools/nip04';
+	import QrCode from './qr-code.svelte';
+	import QrIcon from '$lib/icons/qr-icon.svelte';
+	import { nanoid } from 'nanoid';
+
+	export let roomParams: RoomParams;
 	export let isAnon: boolean = false;
+	export let type: TopicType;
 	const drawerStore = getDrawerStore();
+	let showQr: boolean = false;
 	let elemChat: HTMLElement;
 
 	let currentMessage = '';
@@ -44,12 +54,13 @@
 	async function addMessage(isAnon: boolean): Promise<void> {
 		if (currentMessage === '') return;
 		let eventValues = {
-			kind: 1,
+			kind: typeKindMapping[type],
 			created_at: Math.floor(Date.now() / 1000),
-			content: currentMessage,
+			content:
+				type == 'c' ? await encrypt(roomParams.rK, roomParams.rP, currentMessage) : currentMessage,
 			tags: []
 		};
-
+		// TODO: Study this for cipher rooms, may not be convenient
 		let idSignatures: idSignatureObj | undefined = undefined;
 
 		if (!isAnon) {
@@ -70,7 +81,7 @@
 				sigAuthor: finEvent.sig!
 			};
 		}
-		const signer = new NDKPrivateKeySigner(rK);
+		const signer = new NDKPrivateKeySigner(roomParams.rK);
 		$ndk.signer = signer;
 		const ndkEventFinal = new NDKEvent($ndk);
 		ndkEventFinal.kind = eventValues.kind;
@@ -105,8 +116,8 @@
 	}
 	const chatMessages = $ndk.storeSubscribe(
 		{
-			kinds: [1],
-			authors: [rP],
+			kinds: [typeKindMapping[type]],
+			authors: [roomParams.rP],
 			limit: 10
 		},
 		{
@@ -123,27 +134,29 @@
 	// }
 	let searchGoto: string;
 	function drawerOpen(): void {
-		const s: DrawerSettings = { 
+		const s: DrawerSettings = {
 			id: 'side-nav',
 			width: 'w-[280px] md:w-[480px]',
 			padding: 'p-2',
 			rounded: 'rounded-xl',
 			position: 'right'
-			};
+		};
 		drawerStore.open(s);
 	}
+	$: roomAppSettings = type == 'r' ? $appSettings.rTopics : $appSettings.cTopics;
 	onMount(async () => {
-		if (!$appSettings.rTopics.includes(r)) {
+		if (!roomAppSettings.includes(roomParams.r)) {
 			appSettings.update((currentState) => {
 				return {
 					lastUserLogged: currentState.lastUserLogged,
 					isAnon: currentState.isAnon,
-					rTopics: [...currentState.rTopics, r]
+					rTopics: type == 'r' ? [...currentState.rTopics, roomParams.r] : currentState.rTopics,
+					cTopics: type == 'c' ? [...currentState.cTopics, roomParams.r] : currentState.cTopics
 				};
 			});
 		}
-		roomProfile = await fetchUserProfile(rP);
-		roomProfile = roomProfile?.name ? roomProfile : undefined;
+		// roomProfile = await fetchUserProfile(rP);
+		// roomProfile = roomProfile?.name ? roomProfile : undefined;
 		scrollChatTop();
 	});
 	onDestroy(() => {
@@ -168,15 +181,16 @@
 		<div class="p-2 space-y-4 overflow-y-auto">
 			<small class="opacity-50">Rooms</small>
 			<div class="flex flex-col space-y-1">
-				{#each $appSettings.rTopics as topic}
+				{#each roomAppSettings as topic}
 					<button
 						type="button"
-						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap {topic === r
+						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap {topic ===
+						roomParams.r
 							? 'variant-filled-primary'
 							: 'bg-surface-hover-token'} "
 						on:click={() => goto(`/${$page.route.id?.split('/')[1]}/${topic}`)}
 					>
-						<Avatar initials="X" width="w-6" on:click={() => handleDeleteTopic(topic)} />
+						<Avatar initials="X" width="w-6" on:click={() => handleDeleteTopic(topic, type)} />
 						<span class="flex-1 text-start break-all">
 							{topic}
 						</span>
@@ -184,6 +198,15 @@
 				{/each}
 			</div>
 		</div>
+		{#if type == 'c'}
+			<button
+				type="button"
+				class="btn p-2 w-full flex items-center variant-ghost-primary"
+				on:click={() => goto(`/c/${nanoid(12)}`)}
+			>
+				New secure cipher room
+			</button>
+		{/if}
 	</div>
 	<!-- Chat -->
 	<div class="grid grid-rows-[1fr_auto] h-full max-h-screen">
@@ -191,9 +214,19 @@
 		<header class="flex flex-col h-fit border-b border-surface-700">
 			<div class=" w-full flex justify-between variant-soft items-center px-2">
 				<section class=" flex flex-row items-center gap-1">
-					<span><GlobalIcon size={18} /></span>
-					<span>r/<strong>{r}</strong></span>
+					<button class="btn-icon btn-icon-sm" on:click={() => (showQr = !showQr)}
+						><QrIcon size={18} /></button
+					>
+					<span>{type}/<strong>{roomParams.r}</strong></span>
+					{#if showQr}
+						<QrCode
+							toQr={$page.url.pathname.split('/').length > 2
+								? $page.url.href
+								: `${$page.url.href}/${roomParams.r}`}
+						/>
+					{/if}
 				</section>
+
 				<div class=" inline-flex items-center">
 					<section class=" inline-flex items-baseline justify-end">
 						<!-- {#if !roomProfile}
@@ -203,16 +236,18 @@
 								></button
 							>
 						{/if} -->
-						<a
-							href={roomProfile
-								? `${outNostrLinksUrl}/${npubEncode(rP)}`
-								: `${outNostrLinksUrlCLient}/${npubEncode(rP)}/notes`}
-							target="_blank"
-							rel="noreferrer"
-							><span class=" inline-flex gap-1 badge variant-ghost"
-								><LinkOut size={16} />See outside</span
-							></a
-						>
+						{#if type != 'c'}
+							<a
+								href={roomProfile
+									? `${outNostrLinksUrl}/${npubEncode(roomParams.rP)}`
+									: `${outNostrLinksUrlCLient}/${npubEncode(roomParams.rP)}/notes`}
+								target="_blank"
+								rel="noreferrer"
+								><span class=" inline-flex gap-1 badge variant-ghost"
+									><LinkOut size={16} />See outside</span
+								></a
+							>
+						{/if}
 					</section>
 					<section class="sm:hidden flex">
 						<button class=" btn-icon btn-icon-sm" on:click={() => drawerOpen()}>
@@ -224,7 +259,7 @@
 		</header>
 		<section bind:this={elemChat} class="p-2 overflow-y-scroll space-y-2 break-all">
 			{#each $chatMessages as bubble (bubble.id)}
-				<ChatBubble bubble={bubble} r={r}/>
+				<ChatBubble {bubble} {roomParams} {type} />
 			{/each}
 		</section>
 		<!-- Prompt -->

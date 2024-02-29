@@ -11,9 +11,10 @@ export interface idSignatureObj {
 }
 
 export interface UserSettings {
-	lastUserLogged: string | undefined;
+	lastUserLogged?: string;
 	isAnon: boolean;
 	rTopics: string[];
+	cTopics: string[];
 	// currentUserFollows: string[] | undefined;
 	// UserIdentifier: string | undefined;
 }
@@ -22,3 +23,10 @@ export interface LoadParams {
 		r: string;
 	};
 }
+
+export type TopicType = 'c' | 'r';
+
+export const typeKindMapping = {
+	c: 4,
+	r: 1
+};

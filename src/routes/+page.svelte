@@ -4,7 +4,10 @@
 	import { handleDeleteTopic } from '$lib/helpers';
 	import Logo from '$lib/icons/Logo.svelte';
 	import CloseIcon from '$lib/icons/close-icon.svelte';
+	import CypherIcon from '$lib/icons/cipher-icon.svelte';
+	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import { appSettings } from '$lib/stores/localStore';
+	import { nanoid } from 'nanoid';
 	let searchGoto: string;
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
@@ -29,25 +32,47 @@
 			<input
 				class="input"
 				type="search"
-				placeholder="Go to room..."
+				placeholder="Go to global room..."
 				bind:value={searchGoto}
 				on:keydown={onSearchKeydown}
 			/>
 			<button class="variant-filled-primary" on:click={() => goto(`/r/${searchGoto}`)}>go</button>
 		</div>
-		{#each $appSettings.rTopics as topic}
-		<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
-			<button
-			 class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
-			 on:click={() => goto(`/r/${topic}`)}
-			 >
-				{topic}
-			</button>
-			<button on:click={() => handleDeleteTopic(topic)}><CloseIcon size={16} /></button>
-		</div>
-		{/each}
+		<span class=" opacity-40">Or</span>
+		<button class=" btn variant-filled-primary" on:click={() => goto(`/c/${nanoid(12)}`)}
+			>Create new cipher room</button
+		>
+		{#if $appSettings.rTopics.length}
+			<span class=" inline-flex gap-2 items-center"><GlobalIcon size={16} /> Global rooms:</span>
+			{#each $appSettings.rTopics as topic}
+				<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
+					<button
+						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
+						on:click={() => goto(`/r/${topic}`)}
+					>
+						{topic}
+					</button>
+					<button on:click={() => handleDeleteTopic(topic, 'r')}><CloseIcon size={16} /></button>
+				</div>
+			{/each}
+		{/if}
+		{#if $appSettings.cTopics.length}
+			<span class=" inline-flex gap-2 items-center"><CypherIcon size={16} /> cipher rooms:</span>
+			{#each $appSettings.cTopics as topic}
+				<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
+					<button
+						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
+						on:click={() => goto(`/c/${topic}`)}
+					>
+						{topic}
+					</button>
+					<button on:click={() => handleDeleteTopic(topic, 'c')}><CloseIcon size={16} /></button>
+				</div>
+			{/each}
+		{/if}
 	</section>
-	<section class=" sm:hidden flex">
+	<section class=" sm:hidden block">
+		<p class="opacity-50">If you want to chat using your identity, you can login</p>
 		<Login mode={'primary'} />
 	</section>
 </div>

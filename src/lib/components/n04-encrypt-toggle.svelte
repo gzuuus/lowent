@@ -4,7 +4,7 @@
 	import { SlideToggle } from '@skeletonlabs/skeleton';
 	export let mode: string | undefined = 'primary';
 	const handleAnonToggle = () => {
-		appSettings.update((state) => ({ ...state, isAnon: !state.isAnon }));
+		appSettings.update((state) => ({ ...state, doEncrypt: !state.doEncrypt }));
 	};
 	$: buttonClass =
 		mode === 'inline'
@@ -19,11 +19,11 @@
 </script>
 
 <div class={buttonClass}>
-	<span>{$appSettings.isAnon ? 'Anon' : $ndkUser?.profile?.name}</span>
+	<span>{$appSettings.doEncrypt ? 'Encrypt' : 'Clear-text'}</span>
 	<SlideToggle
 		name="slider-label"
 		size="sm"
-		bind:checked={$appSettings.isAnon}
+		bind:checked={$appSettings.doEncrypt}
 		on:click={handleAnonToggle}
 	/>
 </div>

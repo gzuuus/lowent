@@ -33,7 +33,8 @@ export async function NDKlogin(): Promise<NDKUser | undefined> {
 			return {
 				lastUserLogged: ndkCurrentUser.pubkey,
 				isAnon: false,
-				rTopics: currentState.rTopics
+				rTopics: currentState.rTopics,
+				cTopics: currentState.cTopics
 			};
 		});
 		return user;
@@ -66,7 +67,8 @@ export function logout() {
 		return {
 			lastUserLogged: undefined,
 			isAnon: true,
-			rTopics: currentState.rTopics
+			rTopics: currentState.rTopics,
+			cTopics: currentState.cTopics
 		};
 	});
 }
@@ -124,20 +126,30 @@ export function unixToDate(unixTimestamp: number) {
 	return new Date(unixTimestamp * 1000).toLocaleString('en-US', options);
 }
 
-export function handleDeleteTopic(topic: string): void {
+export function handleDeleteTopic(topic: string, type: string): void {
 	let $appSettings = get(appSettings);
 	let $page = get(page);
 	appSettings.update((currentState) => {
 		return {
 			lastUserLogged: currentState.lastUserLogged,
 			isAnon: currentState.isAnon,
-			rTopics: currentState.rTopics.filter((value) => value !== topic)
+			rTopics:
+				type == 'r'
+					? currentState.rTopics.filter((value) => value !== topic)
+					: currentState.rTopics,
+			cTopics:
+				type == 'c' ? currentState.cTopics.filter((value) => value !== topic) : currentState.cTopics
 		};
 	});
-	console.log($appSettings.rTopics);
-	if ($appSettings.rTopics.length == 0) {
+	if (
+		(type == 'r' && $appSettings.rTopics.length == 0) ||
+		(type == 'c' && $appSettings.cTopics.length == 0)
+	) {
 		goto('/');
-	} else goto(`/${$page.route.id?.split('/')[1]}/${$appSettings.rTopics[0]}`);
+	} else
+		goto(
+			`/${$page.route.id?.split('/')[1]}/${type == 'r' ? $appSettings.rTopics[0] : $appSettings.cTopics[0]}`
+		);
 }
 
 export async function announceTopic(publicKey: string, publicName: string, secretKey: string) {
@@ -157,13 +169,22 @@ export async function announceTopic(publicKey: string, publicName: string, secre
 }
 
 export async function addIdToDb(idToAdd: string): Promise<boolean> {
-    try {
+	try {
 		const id = await ownDb.ownedMsgs.add({
 			id: idToAdd
-		})
+		});
 		return true;
-    } catch (error) {
+	} catch (error) {
 		console.error(error);
 		return false;
 	}
-  }
+}
+
+export function initializeAppSettings() {
+	appSettings.update((currentState) => ({
+		lastUserLogged: currentState.lastUserLogged ?? '',
+		isAnon: currentState.isAnon ?? true,
+		rTopics: currentState.rTopics ?? [],
+		cTopics: currentState.cTopics ?? []
+	}));
+}

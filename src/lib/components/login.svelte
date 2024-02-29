@@ -8,13 +8,13 @@
 	const modalStore = getModalStore();
 
 	const modal: ModalSettings = {
-	      type: 'component',
-	      component: 'modalNoNip07',
-	  }
+		type: 'component',
+		component: 'modalNoNip07'
+	};
 	async function login() {
 		const login = await NDKlogin();
 		if (!login) {
-			modalStore.trigger(modal)
+			modalStore.trigger(modal);
 			console.log('Login error');
 			return;
 		}
@@ -31,6 +31,7 @@
 						? 'common-btn-filled justify-start w-full hover:text-current'
 						: 'hidden';
 </script>
+
 {#if !$ndkUser}
 	<button class={buttonClass} on:click={login}>Login</button>
 {:else}
