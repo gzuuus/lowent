@@ -190,3 +190,20 @@ export function initializeAppSettings() {
 		cTopics: currentState.cTopics ?? []
 	}));
 }
+
+export async function sharePage(urlToShare: string) {
+	if (navigator && typeof navigator !== "undefined" && "share" in navigator && typeof navigator.share === "function") {
+	  let url = urlToShare;
+	  try {
+		await navigator.share({
+		  url,
+		});
+		return true;
+	  } catch (error) {
+		console.error("Error :", error);
+	  }
+	} else {
+		await navigator.clipboard.writeText(urlToShare);
+		return true;
+	}
+  }

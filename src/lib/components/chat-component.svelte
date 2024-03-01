@@ -14,7 +14,6 @@
 	import SendIcon from '$lib/icons/send-icon.svelte';
 	import {
 		addIdToDb,
-		announceTopic,
 		fetchUserProfile,
 		finaliceEvent,
 		handleDeleteTopic
@@ -26,7 +25,6 @@
 		type RoomParams
 	} from '$lib/interfaces';
 	import { page } from '$app/stores';
-	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import LinkOut from '$lib/icons/link-out.svelte';
 	import { outNostrLinksUrl, outNostrLinksUrlCLient } from '$lib/stores/constants';
 	import { npubEncode } from 'nostr-tools/nip19';
@@ -34,16 +32,16 @@
 	import HamMenuIcon from '$lib/icons/ham-menu-icon.svelte';
 	import { getDrawerStore } from '@skeletonlabs/skeleton';
 	import { encrypt } from 'nostr-tools/nip04';
-	import QrCode from './qr-code.svelte';
 	import QrIcon from '$lib/icons/qr-icon.svelte';
 	import { nanoid } from 'nanoid';
-
+	import EditIcon from '$lib/icons/edit-icon.svelte';
+	import AnnounceIcon from '$lib/icons/announce-icon.svelte';
+	import BackIcon from '$lib/icons/back-icon.svelte';
 	export let roomParams: RoomParams;
 	export let isAnon: boolean = false;
 	export let type: TopicType;
 	const drawerStore = getDrawerStore();
 	const modalStore = getModalStore();
-	let showQr: boolean = false;
 	
 	let elemChat: HTMLElement;
 
@@ -113,7 +111,7 @@
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
 			event.preventDefault();
-			goto(`/${$page.route.id?.split('/')[1]}/${searchGoto}`);
+			goto(`/${type}/${searchGoto}`);
 		}
 	}
 	const chatMessages = $ndk.storeSubscribe(
@@ -186,7 +184,7 @@
 	<!-- Navigation -->
 	<div class="hidden sm:grid grid-rows-[auto_1fr_auto] border-r border-surface-500/30">
 		<!-- Header -->
-		<header class="border-b border-surface-500/30 p-4">
+		<header class="border-b border-surface-500/30 p-4 grid grid-cols-[1fr_auto]">
 			<input
 				class="input"
 				type="search"
@@ -194,6 +192,15 @@
 				bind:value={searchGoto}
 				on:keydown={onSearchKeydown}
 			/>
+			{#if searchGoto}
+				<button
+					type="submit"
+					class="btn variant-filled-primary"
+					on:click={() => goto(`/${type}/${searchGoto}`)}
+				>
+					Go
+				</button>
+			{/if}
 		</header>
 		<!-- List -->
 		<div class="p-2 space-y-4 overflow-y-auto">
@@ -206,7 +213,7 @@
 						roomParams.r
 							? 'variant-filled-primary'
 							: 'bg-surface-hover-token'} "
-						on:click={() => goto(`/${$page.route.id?.split('/')[1]}/${topic}`)}
+						on:click={() => goto(`/${type}/${topic}`)}
 					>
 						<Avatar initials="X" width="w-6" on:click={() => handleDeleteTopic(topic, type)} />
 						<span class="flex-1 text-start break-all">
@@ -236,17 +243,26 @@
 		<header class="flex flex-col h-fit border-b border-surface-700">
 			<div class=" w-full flex justify-between variant-soft items-center px-2">
 				<section class=" flex flex-row items-center gap-1">
-					<button class="btn-icon btn-icon-sm" on:click={craftQrModal}
-						><QrIcon size={18} /></button
-					>
+					<button class="btn-icon btn-icon-sm" on:click={() => goto(`/`)}
+					><BackIcon size={17} /></button
+				>
 					<span>{type}/<strong>{roomParams.r}</strong></span>
 				</section>
 
-				<div class=" inline-flex items-center">
+				<div class=" inline-flex items-center gap-2">
 					<section class=" inline-flex items-baseline justify-end">
+							<button class="badge variant-ghost" on:click={craftQrModal}
+								><QrIcon size={17} /></button
+							>
 							<button class="btn btn-sm" on:click={craftAnnounceModal}
-								><span class=" inline-flex gap-1 badge variant-ghost"
-									><GlobalIcon size={16} />{!roomProfile?.name ? 'Announce' : 'Update'}</span
+								><span class=" badge variant-ghost"
+									>
+									{#if !roomProfile?.name}
+									<AnnounceIcon size={17} />
+									{:else}
+									<EditIcon size={17} />
+									{/if}
+									</span
 								></button
 							>
 						{#if type != 'c'}
@@ -256,14 +272,14 @@
 									: `${outNostrLinksUrlCLient}/${npubEncode(roomParams.rP)}/notes`}
 								target="_blank"
 								rel="noreferrer"
-								><span class=" inline-flex gap-1 badge variant-ghost"
+								><span class=" badge variant-ghost"
 									><LinkOut size={16} /></span
 								></a
 							>
 						{/if}
 					</section>
 					<section class="sm:hidden flex">
-						<button class=" btn-icon btn-icon-sm" on:click={() => drawerOpen()}>
+						<button class=" badge variant-ghost" on:click={() => drawerOpen()}>
 							<HamMenuIcon size={22} />
 						</button>
 					</section>
