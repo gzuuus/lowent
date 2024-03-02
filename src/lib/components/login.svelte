@@ -36,7 +36,6 @@
 	<button class={buttonClass} on:click={login}>Login</button>
 {:else}
 	<section class=" flex flex-row items-center gap-2">
-		<span class=" opacity-70">Publishing as: </span><AnonToggle mode={'inline'} />
 		<button type="button" class="btn-icon btn-icon-sm variant-ghost-error" on:click={logout}>
 			<LogoutIcon size={16} />
 		</button>

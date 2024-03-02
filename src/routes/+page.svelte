@@ -8,6 +8,7 @@
 	import GlobalIcon from '$lib/icons/global-icon.svelte';
 	import { appSettings } from '$lib/stores/localStore';
 	import { nanoid } from 'nanoid';
+	import { ndkUser } from '$lib/stores/provider';
 	let searchGoto: string;
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
@@ -71,8 +72,10 @@
 			{/each}
 		{/if}
 	</section>
+	{#if !$ndkUser}
 	<section class=" sm:hidden block">
 		<p class="opacity-50">If you want to chat using your identity, you can login</p>
 		<Login mode={'primary'} />
 	</section>
+	{/if}
 </div>

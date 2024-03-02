@@ -154,6 +154,7 @@ export function handleDeleteTopic(topic: string, type: string): void {
 }
 
 export async function announceTopic(roomParams: RoomParams, customName?: string, allowJoin?: string) {
+	// Todo Add tags for discovery
 	const roomName = customName?.trim() != '' || undefined ? customName : roomParams.r
 	const ndk = get(ndkStore);
 	const topic = ndk.getUser({ pubkey: roomParams.rP });
