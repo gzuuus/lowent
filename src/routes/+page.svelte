@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import Login from '$lib/components/login.svelte';
-	import { handleDeleteTopic } from '$lib/helpers';
 	import Logo from '$lib/icons/Logo.svelte';
-	import CloseIcon from '$lib/icons/close-icon.svelte';
-	import CypherIcon from '$lib/icons/cipher-icon.svelte';
-	import GlobalIcon from '$lib/icons/global-icon.svelte';
-	import { appSettings } from '$lib/stores/localStore';
 	import { nanoid } from 'nanoid';
 	import { ndkUser } from '$lib/stores/provider';
 	import GhIcon from '$lib/icons/gh-icon.svelte';
+	import SearchComponent from '$lib/components/search-component.svelte';
+	import UserTopicList from '$lib/components/user-topic-list.svelte';
+	import { appSettings } from '$lib/stores/localStore';
 	let searchGoto: string;
+	let isExplore: boolean = $appSettings.cTopics.length || $appSettings.rTopics.length ? false : true;
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
 			event.preventDefault();
@@ -44,39 +42,14 @@
 		<button class=" btn variant-filled-primary w-full" on:click={() => goto(`/c/${nanoid(12)}`)}
 			>Create new cipher room</button
 		>
-		{#if $appSettings.rTopics.length}
-			<span class=" inline-flex gap-2 items-center"><GlobalIcon size={16} /> Global rooms:</span>
-			{#each $appSettings.rTopics as topic}
-				<div class="btn-group variant-soft grid grid-cols-[1fr_auto] w-full">
-					<button
-						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
-						on:click={() => goto(`/r/${topic}`)}
-					>
-						{topic}
-					</button>
-					<button on:click={() => handleDeleteTopic(topic, 'r')}><CloseIcon size={16} /></button>
-				</div>
-			{/each}
-		{/if}
-		{#if $appSettings.cTopics.length}
-			<span class=" inline-flex gap-2 items-center"><CypherIcon size={16} /> cipher rooms:</span>
-			{#each $appSettings.cTopics as topic}
-				<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
-					<button
-						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
-						on:click={() => goto(`/c/${topic}`)}
-					>
-						{topic}
-					</button>
-					<button on:click={() => handleDeleteTopic(topic, 'c')}><CloseIcon size={16} /></button>
-				</div>
-			{/each}
+		<button class=" btn btn-sm variant-soft-primary w-full" on:click={() => isExplore = !isExplore}
+			>{!isExplore ? 'Explore other rooms' : 'See your room list'}</button
+		>
+		{#if !isExplore}
+			<UserTopicList />
+		{:else}
+			<span>Exploring announced rooms:</span>
+			<SearchComponent searchQuery={' '} />
 		{/if}
 	</section>
-	{#if !$ndkUser}
-	<section class=" sm:hidden block">
-		<p class="opacity-50">If you want to chat using your identity, you can login</p>
-		<Login mode={'primary'} />
-	</section>
-	{/if}
 </div>
