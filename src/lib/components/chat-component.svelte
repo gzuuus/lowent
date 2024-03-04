@@ -254,19 +254,20 @@
 							<button class="badge variant-ghost" on:click={craftQrModal}
 								><QrIcon size={17} /></button
 							>
-							<button class="btn btn-sm" on:click={craftAnnounceModal}
-								><span class=" badge variant-ghost"
-									>
-									{#if !roomProfile?.name}
-									<AnnounceIcon size={17} />
-									{:else}
-									<EditIcon size={17} />
-									{/if}
-									</span
-								></button
-							>
+							
 						{#if type != 'c'}
-							<a
+						<button class="btn btn-sm" on:click={craftAnnounceModal}
+							><span class=" badge variant-ghost"
+								>
+								{#if !roomProfile?.name}
+								<AnnounceIcon size={17} />
+								{:else}
+								<EditIcon size={17} />
+								{/if}
+								</span
+							></button
+						>	
+						<a
 								href={roomProfile
 									? `${outNostrLinksUrl}/${npubEncode(roomParams.rP)}`
 									: `${outNostrLinksUrlCLient}/${npubEncode(roomParams.rP)}/notes`}

@@ -41,13 +41,13 @@
 			<button class="variant-filled-primary" on:click={() => goto(`/r/${searchGoto}`)}>go</button>
 		</div>
 		<span class=" opacity-40">Or</span>
-		<button class=" btn variant-filled-primary" on:click={() => goto(`/c/${nanoid(12)}`)}
+		<button class=" btn variant-filled-primary w-full" on:click={() => goto(`/c/${nanoid(12)}`)}
 			>Create new cipher room</button
 		>
 		{#if $appSettings.rTopics.length}
 			<span class=" inline-flex gap-2 items-center"><GlobalIcon size={16} /> Global rooms:</span>
 			{#each $appSettings.rTopics as topic}
-				<div class="btn-group variant-soft grid grid-cols-[1fr_auto]">
+				<div class="btn-group variant-soft grid grid-cols-[1fr_auto] w-full">
 					<button
 						class="btn p-2 w-full flex items-center space-x-1 whitespace-pre-wrap variant-soft"
 						on:click={() => goto(`/r/${topic}`)}
