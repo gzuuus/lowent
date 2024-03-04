@@ -9,6 +9,7 @@
 	import { appSettings } from '$lib/stores/localStore';
 	import { nanoid } from 'nanoid';
 	import { ndkUser } from '$lib/stores/provider';
+	import GhIcon from '$lib/icons/gh-icon.svelte';
 	let searchGoto: string;
 	function onSearchKeydown(event: KeyboardEvent): void {
 		if (['Enter'].includes(event.code)) {
@@ -19,12 +20,12 @@
 </script>
 
 <div class=" h-full flex flex-col items-center justify-center text-center">
-	<section class=" sm:card w-fit p-4 flex flex-col gap-2 max-w-sm">
+	<section class=" sm:card w-fit p-4 flex flex-col gap-2 max-w-sm items-center">
 		<section class=" self-center">
 			<Logo size={75} />
 		</section>
 		<h1 class="h2">LowEnt</h1>
-		<h3 class="h4">(demo)</h3>
+		<a href="https://github.com/gzuuus/lowent" target="_blank" rel="noopener noreferrer" class="btn-icon btn-icon-sm variant-soft"><GhIcon size={24} /></a>
 		<p>Be anon, or not, chat freely about anything</p>
 		<p class="opacity-50">
 			Exploring the use of low-entropy keys to establish shared topics and rooms.

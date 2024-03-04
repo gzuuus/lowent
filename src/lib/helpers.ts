@@ -160,7 +160,7 @@ export async function announceTopic(roomParams: RoomParams, customName?: string,
 	const topic = ndk.getUser({ pubkey: roomParams.rP });
 	await topic.fetchProfile();
 	topic.profile!.name = roomName;
-	topic.profile!.about = `Topic: ${roomName}${allowJoin ? `, Connect: ${allowJoin}`: ''}`;
+	topic.profile!.about = `#${roomName}${allowJoin ? `, Connect: ${allowJoin}`: ''}`;
 	topic.profile!.website = allowJoin ? allowJoin : undefined;
 	const signer = new NDKPrivateKeySigner(roomParams.rK);
 	ndk.signer = signer;

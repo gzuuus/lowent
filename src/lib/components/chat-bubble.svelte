@@ -81,9 +81,9 @@
 						<p class="font-bold">
 							{value?.name}
 						</p>
-						<small class="opacity-50"
+						<!-- <small class="opacity-50"
 							>{npubEncode(bubble.tagValue('p') ?? '').substring(0, 16)}...</small
-						>
+						> -->
 					</section>
 					<small class="opacity-50 inline-flex items-center gap-1">
 						{#if verifyAuthEvent(bubble, bubble.tagValue('p'), bubble.tagValue('e'), bubble.tagValue('sig'))}
