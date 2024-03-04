@@ -7,6 +7,7 @@
 	import SearchComponent from '$lib/components/search-component.svelte';
 	import UserTopicList from '$lib/components/user-topic-list.svelte';
 	import { appSettings } from '$lib/stores/localStore';
+	import { browser } from '$app/environment';
 	let searchGoto: string;
 	let isExplore: boolean = $appSettings.cTopics.length || $appSettings.rTopics.length ? false : true;
 	function onSearchKeydown(event: KeyboardEvent): void {
@@ -45,7 +46,7 @@
 		<button class=" btn btn-sm variant-soft-primary w-full" on:click={() => isExplore = !isExplore}
 			>{!isExplore ? 'Explore other rooms' : 'See your room list'}</button
 		>
-		{#if !isExplore}
+		{#if !isExplore && browser}
 			<UserTopicList />
 		{:else}
 			<span>Exploring announced rooms:</span>
