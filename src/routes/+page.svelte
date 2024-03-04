@@ -46,11 +46,13 @@
 		<button class=" btn btn-sm variant-soft-primary w-full" on:click={() => isExplore = !isExplore}
 			>{!isExplore ? 'Explore other rooms' : 'See your room list'}</button
 		>
-		{#if !isExplore && browser}
-			<UserTopicList />
-		{:else}
-			<span>Exploring announced rooms:</span>
-			<SearchComponent searchQuery={' '} />
+		{#if browser}
+			{#if !isExplore}
+				<UserTopicList />
+			{:else}
+				<span>Exploring announced rooms:</span>
+				<SearchComponent searchQuery={' '} />
+			{/if}
 		{/if}
 	</section>
 </div>
